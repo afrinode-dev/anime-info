@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "functions": {
+    "api/anime.js": {
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/anime.html"
+    },
+    {
+      "source": "/api/anime",
+      "destination": "/api/anime.js"
+    }
+  ]
+}

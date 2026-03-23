@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Anime Scraper - Catalogue Anime-Sama</title>
+    <meta name="description" content="Scraper de catalogue d'animes - Anime-Sama.to">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --accent: #e83e8c;
+            --accent-light: #f06292;
+            --accent-dim: rgba(232, 62, 140, 0.1);
+            --bg: #0a0a2a;
+            --surface: rgba(20, 20, 45, 0.75);
+            --surface-strong: rgba(30, 30, 55, 0.92);
+            --border: rgba(232, 62, 140, 0.2);
+            --border-strong: rgba(232, 62, 140, 0.45);
+            --text: #ffffff;
+            --text-secondary: #b0b0d0;
+            --text-muted: #6b6b8f;
+            --green: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --radius: 18px;
+            --radius-lg: 24px;
+            --shadow-sm: 0 8px 20px -8px rgba(232, 62, 140, 0.2);
+            --shadow-hover: 0 20px 30px -12px rgba(232, 62, 140, 0.3);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.5;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Fond animé */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            overflow: hidden;
+        }
+
+        .gradient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.4;
+            animation: float 25s infinite alternate ease-in-out;
+        }
+
+        .orb1 {
+            width: 600px;
+            height: 600px;
+            background: rgba(232, 62, 140, 0.5);
+            top: -200px;
+            left: -100px;
+            animation-duration: 20s;
+        }
+
+        .orb2 {
+            width: 500px;
+            height: 500px;
+            background: rgba(156, 39, 176, 0.5);
+            bottom: -150px;
+            right: -100px;
+            animation-duration: 28s;
+            animation-delay: -5s;
+        }
+
+        .orb3 {
+            width: 400px;
+            height: 400px;
+            background: rgba(63, 81, 181, 0.5);
+            top: 40%;
+            left: 40%;
+            animation-duration: 22s;
+            animation-delay: -2s;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(232, 62, 140, 0.4);
+            border-radius: 50%;
+            animation: float-particle 12s infinite linear;
+        }
+
+        @keyframes float-particle {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.5;
+            }
+            90% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateY(-100px) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(80px, -60px) scale(1.3); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 4px 20px rgba(232, 62, 140, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 8px 40px rgba(232, 62, 140, 0.5); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Main Content */
+        .main-content {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+            animation: slideInLeft 0.6s ease-out;
+        }
+
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent), #9c27b0);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            animation: pulse 2s infinite;
+        }
+
+        .logo-icon i {
+            font-size: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            background: linear-gradient(135deg, var(--accent), #9c27b0, #3f51b5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 18px;
+        }
+
+        /* Card principale */
+        .card {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .card:hover {
+            border-color: var(--border-strong);
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-4px);
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--surface-strong);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; animation-fill-mode: forwards; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; animation-fill-mode: forwards; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; animation-fill-mode: forwards; }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-strong);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--accent);
+            line-height: 1.2;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        /* Bouton principal */
+        .btn-download {
+            background: linear-gradient(135deg, var(--accent), #9c27b0);
+            border: none;
+            padding: 18px 48px;
+            border-radius: 60px;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 32px;
+            box-shadow: 0 8px 24px rgba(232, 62, 140, 0.3);
+        }
+
+        .btn-download:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(232, 62, 140, 0.5);
+        }
+
+        .btn-download:active {
+            transform: translateY(0);
+        }
+
+        .btn-download i {
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+
+        .btn-download:hover i {
+            transform: translateY(2px);
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        /* Alertes */
+        .alert {
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            display: none;
+            animation: fadeInUp 0.3s ease-out;
+            position: relative;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--green);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--error);
+        }
+
+        .alert-info {
+            background: rgba(232, 62, 140, 0.1);
+            border: 1px solid var(--border-strong);
+            color: var(--accent);
+        }
+
+        /* Info box */
+        .info-box {
+            background: var(--accent-dim);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 32px;
+            text-align: left;
+        }
+
+        .info-box h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent);
+        }
+
+        .info-box p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .info-box ul {
+            list-style: none;
+            margin-top: 12px;
+        }
+
+        .info-box li {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-box li i {
+            color: var(--green);
+            font-size: 12px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 24px 16px;
+            }
+            
+            .card {
+                padding: 24px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .header h1 {
+                font-size: 32px;
+            }
+            
+            .btn-download {
+                padding: 14px 32px;
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stat-value {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg">
+        <div class="gradient-orb orb1"></div>
+        <div class="gradient-orb orb2"></div>
+        <div class="gradient-orb orb3"></div>
+    </div>
+    <div class="particles" id="particles"></div>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="header">
+                <div class="logo-icon">
+                    <i class="fas fa-film"></i>
+                </div>
+                <h1>Anime Scraper</h1>
+                <p>Extraction du catalogue complet d'Anime-Sama.to</p>
+            </div>
+
+            <div class="card">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalAnimes">0</div>
+                        <div class="stat-label"><i class="fas fa-tv"></i> Animes trouvés</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="scrapeDate">-</div>
+                        <div class="stat-label"><i class="fas fa-calendar"></i> Dernier scrape</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="sourceUrl">-</div>
+                        <div class="stat-label"><i class="fas fa-database"></i> Source</div>
+                    </div>
+                </div>
+
+                <div id="alert" class="alert"></div>
+
+                <button class="btn-download" id="downloadBtn" onclick="fetchAndDownload()">
+                    <i class="fas fa-download"></i>
+                    <span>Télécharger le JSON complet</span>
+                </button>
+
+                <div class="info-box">
+                    <h3><i class="fas fa-info-circle"></i> À propos</h3>
+                    <p>Cet outil extrait l'intégralité du catalogue d'animés depuis Anime-Sama.to. Le fichier JSON contient :</p>
+                    <ul>
+                        <li><i class="fas fa-check-circle"></i> Titre complet de chaque anime</li>
+                        <li><i class="fas fa-check-circle"></i> URL directe vers la page</li>
+                        <li><i class="fas fa-check-circle"></i> Slug unique pour l'identification</li>
+                        <li><i class="fas fa-check-circle"></i> Date de l'extraction</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p><i class="fas fa-code"></i> Scraper open source | Données extraites depuis Anime-Sama.to</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let animeData = null;
+        let isLoading = false;
+
+        // Création des particules
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            if (!particlesContainer) return;
+            
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 15) + 's';
+                particle.style.opacity = Math.random() * 0.5;
+                particle.style.width = (2 + Math.random() * 5) + 'px';
+                particle.style.height = particle.style.width;
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Affichage des messages
+        function showMessage(message, type) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Mise à jour des stats
+        function updateStats(data) {
+            if (data) {
+                document.getElementById('totalAnimes').textContent = data.total || 0;
+                const date = new Date(data.scrape_date);
+                document.getElementById('scrapeDate').textContent = date.toLocaleDateString('fr-FR');
+                const sourceUrl = data.source || 'https://anime-sama.to';
+                document.getElementById('sourceUrl').textContent = sourceUrl.split('//')[1] || 'anime-sama.to';
+            }
+        }
+
+        // Récupération et téléchargement
+        async function fetchAndDownload() {
+            if (isLoading) return;
+            
+            isLoading = true;
+            const btn = document.getElementById('downloadBtn');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<div class="loading-spinner"></div> Chargement en cours...';
+            btn.disabled = true;
+            
+            try {
+                showMessage('📡 Récupération du catalogue en cours...', 'info');
+                
+                const response = await fetch('/api/anime');
+                
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                animeData = data;
+                updateStats(animeData);
+                
+                // Création et téléchargement du fichier JSON
+                const jsonStr = JSON.stringify(animeData, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `anime-catalogue-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showMessage(`✅ Téléchargement terminé ! ${animeData.total} animes exportés.`, 'success');
+                
+            } catch (error) {
+                console.error('Erreur:', error);
+                showMessage(`❌ Erreur: ${error.message}`, 'error');
+            } finally {
+                isLoading = false;
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        // Initialisation avec chargement des données de cache
+        async function init() {
+            createParticles();
+            
+            // Tentative de chargement des données sans téléchargement
+            try {
+                const response = await fetch('/api/anime');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (!data.error) {
+                        updateStats(data);
+                    }
+                }
+            } catch (e) {
+                console.log('Cache non disponible, attendre téléchargement');
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
